@@ -13,20 +13,21 @@ module Rack
     end
 
     def call(env)
-      t, path = self.class.timeout, env['ORIGINAL_FULLPATH']
+      t0, t, path = Time.now.utc, self.class.timeout, env['ORIGINAL_FULLPATH']
       begin
-        log "about to start handling request for '#{path}' with a timeout of #{t} seconds."
+        log "about to start handling request for %s with a timeout of %d seconds.", path, t
         retval = ::Timeout.timeout(self.class.timeout, ::Timeout::Error) { @app.call(env) }
+        t1 = Time.now.utc
       rescue ::Timeout::Error
-        log "request for '#{path}' aborted after a timeout of #{t} seconds."
+        log "request for %s aborted after a timeout of %d seconds.", path, t
         raise
       end
-      log "request for '#{path}' completed in under #{t} seconds."
+      log "request for %s completed in about %0.2f seconds.", path, (t1 - t0)
       retval
     end
 
-    def log(s)
-      $stderr.puts "rack-timeout: #{s}"
+    def log(s, *vs)
+      $stderr.puts "rack-timeout: #{s}" % vs
     end
 
   end
