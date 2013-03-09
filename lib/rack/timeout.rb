@@ -13,7 +13,7 @@ module Rack
     end
 
     def call(env)
-      t0, t, path = Time.now.utc, self.class.timeout, env['ORIGINAL_FULLPATH']
+      t0, t, path = Time.now.utc, self.class.timeout, env['REQUEST_PATH']
       begin
         log "about to start handling request for %s with a timeout of %d seconds.", path, t
         retval = ::Timeout.timeout(self.class.timeout, ::Timeout::Error) { @app.call(env) }
